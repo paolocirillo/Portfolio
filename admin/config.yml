@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: paolocirillo/portfolio
+  repo: paolocirillo/Portfolio
   branch: main
 
 media_folder: "images/uploads"
@@ -14,20 +14,19 @@ collections:
         label: "Gestione Foto"
         file: "data/photos.json"
         fields:
-          - name: "photos"
-            label: "Scatti"
-            label_singular: "Scatto"
+          - name: "groups"
+            label: "Raccolte per Anno"
+            label_singular: "Anno"
             widget: "list"
-            summary: "{{fields.year}} — {{fields.title}}"
+            required: false
+            summary: "Anno {{fields.year}}"
             fields:
-              - label: "Foto"
-                name: "image"
-                widget: "image"
               - label: "Anno"
                 name: "year"
                 widget: "string"
                 default: "2026"
-              - label: "Titolo o nota (opzionale)"
-                name: "title"
-                widget: "string"
+              - label: "Foto"
+                name: "images"
+                widget: "image"
+                multiple: true
                 required: false
