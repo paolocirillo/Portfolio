@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paolo Cirillo — Fotografia</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #141414;
+      --muted: #737373;
+      --border: #e5e5e5;
+      --card-bg: #f0f0f0;
+    }
+    [data-theme="dark"] {
+      --bg: #0f0f0f;
+      --text: #f2f2f2;
+      --muted: #8a8a8a;
+      --border: #262626;
+      --card-bg: #1a1a1a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      transition: background 0.25s, color 0.25s;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 48px 24px 32px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 20px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    nav button, .theme-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.92rem;
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color 0.2s;
+      font-family: inherit;
+    }
+    nav button:hover, nav button.active, .theme-btn:hover {
+      color: var(--text);
+    }
+    nav button.active {
+      font-weight: 600;
+      border-bottom: 1.5px solid var(--text);
+    }
+    .theme-btn {
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+    .gallery {
+      columns: 3 320px;
+      column-gap: 18px;
+    }
+    .photo-item {
+      break-inside: avoid;
+      margin-bottom: 18px;
+      position: relative;
+      cursor: zoom-in;
+      background: var(--card-bg);
+      overflow: hidden;
+    }
+    .photo-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.4s ease, opacity 0.3s ease;
+    }
+    .photo-item:hover img {
+      transform: scale(1.015);
+    }
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    footer {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    footer a {
+      color: var(--text);
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.96);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 92vw;
+      max-height: 84vh;
+      object-fit: contain;
+      user-select: none;
+    }
+    .lb-caption {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #d4d4d4;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+    .lb-btn {
+      position: fixed;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.8rem;
+      cursor: pointer;
+      padding: 12px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .lb-btn:hover { opacity: 1; }
+    .lb-close { top: 14px; right: 20px; font-size: 2rem; }
+    .lb-prev { left: 12px; top: 50%; transform: translateY(-50%); }
+    .lb-next { right: 12px; top: 50%; transform: translateY(-50%); }
+
+    @media (max-width: 600px) {
+      header { padding: 32px 16px 24px; }
+      main { padding: 24px 16px 48px; }
+      .lb-prev, .lb-next { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Paolo Cirillo</h1>
+    <div class="controls">
+      <nav id="filters">
+        <button class="active" data-year="Tutti">Tutti</button>
+      </nav>
+      <button class="theme-btn" id="themeToggle" aria-label="Cambia tema">Tema scuro</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="gallery" class="gallery"></div>
+    <div id="emptyState" class="empty-state" style="display:none;">
+      Nessuna foto presente in questa sezione.
+    </div>
+  </main>
+
+  <footer>
+    <span>© <span id="year"></span> Paolo Cirillo</span>
+    <span>
+      <a href="https://instagram.com/paolocirillo_" target="_blank" rel="noopener">Instagram</a> · 
+      <a href="mailto:paolocirillo00@gmail.com">Contatti</a>
+    </span>
+  </footer>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lb-btn lb-close" id="lbClose" aria-label="Chiudi">&times;</button>
+    <button class="lb-btn lb-prev" id="lbPrev" aria-label="Precedente">&#8249;</button>
+    <img id="lbImg" src="" alt="">
+    <button class="lb-btn lb-next" id="lbNext" aria-label="Successiva">&#8250;</button>
+    <div class="lb-caption" id="lbCaption"></div>
+  </div>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Tema chiaro/scuro
+    const themeBtn = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeBtn.textContent = 'Tema chiaro';
+    }
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeBtn.textContent = isDark ? 'Tema scuro' : 'Tema chiaro';
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    });
+
+    // Stato galleria
+    let allPhotos = [];
+    let filteredPhotos = [];
+    let currentIndex = 0;
+
+    const galleryEl = document.getElementById('gallery');
+    const emptyEl = document.getElementById('emptyState');
+
+    function buildYearFilters() {
+      const years = [...new Set(allPhotos.map(p => String(p.year || '').trim()).filter(Boolean))]
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+
+      const nav = document.getElementById('filters');
+      nav.innerHTML = '<button class="active" data-year="Tutti">Tutti</button>';
+
+      years.forEach(year => {
+        const btn = document.createElement('button');
+        btn.dataset.year = year;
+        btn.textContent = year;
+        nav.appendChild(btn);
+      });
+
+      nav.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          nav.querySelector('.active').classList.remove('active');
+          btn.classList.add('active');
+          renderGallery(btn.dataset.year);
+        });
+      });
+    }
+
+    function renderGallery(year = 'Tutti') {
+      filteredPhotos = year === 'Tutti'
+        ? allPhotos
+        : allPhotos.filter(p => String(p.year || '').trim() === year);
+
+      galleryEl.innerHTML = '';
+      if (!filteredPhotos.length) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+      emptyEl.style.display = 'none';
+
+      filteredPhotos.forEach((photo, idx) => {
+        const div = document.createElement('div');
+        div.className = 'photo-item';
+        const img = document.createElement('img');
+        img.src = photo.image.replace(/^\/+/, '');
+        img.alt = photo.title || String(photo.year || 'Foto');
+        img.loading = 'lazy';
+        div.appendChild(img);
+        div.addEventListener('click', () => openLightbox(idx));
+        galleryEl.appendChild(div);
+      });
+    }
+
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lbImg');
+    const lbCaption = document.getElementById('lbCaption');
+
+    function openLightbox(index) {
+      currentIndex = index;
+      updateLightbox();
+      lightbox.classList.add('open');
+    }
+    function updateLightbox() {
+      const p = filteredPhotos[currentIndex];
+      lbImg.src = p.image.replace(/^\/+/, '');
+      lbCaption.textContent = [p.title, p.year].filter(Boolean).join(' — ');
+    }
+    function closeLightbox() { lightbox.classList.remove('open'); }
+    function nextPhoto() {
+      currentIndex = (currentIndex + 1) % filteredPhotos.length;
+      updateLightbox();
+    }
+    function prevPhoto() {
+      currentIndex = (currentIndex - 1 + filteredPhotos.length) % filteredPhotos.length;
+      updateLightbox();
+    }
+
+    document.getElementById('lbClose').onclick = closeLightbox;
+    document.getElementById('lbNext').onclick = (e) => { e.stopPropagation(); nextPhoto(); };
+    document.getElementById('lbPrev').onclick = (e) => { e.stopPropagation(); prevPhoto(); };
+    lightbox.onclick = (e) => { if (e.target === lightbox) closeLightbox(); };
+
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') nextPhoto();
+      if (e.key === 'ArrowLeft') prevPhoto();
+    });
+
+    // Swipe da telefono
+    let touchStartX = 0;
+    lightbox.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+    lightbox.addEventListener('touchend', e => {
+      const diff = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(diff) > 40) diff < 0 ? nextPhoto() : prevPhoto();
+    });
+
+    // Caricamento dati
+    fetch('data/photos.json?v=' + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        allPhotos = data.photos || [];
+        buildYearFilters();
+        renderGallery('Tutti');
+      })
+      .catch(() => { emptyEl.style.display = 'block'; });
+  </script>
+</body>
+</html>
