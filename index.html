@@ -281,7 +281,7 @@
         div.className = 'photo-item';
         const img = document.createElement('img');
         img.src = photo.image.replace(/^\/+/, '');
-        img.alt = photo.title || String(photo.year || 'Foto');
+        img.alt = String(photo.year || 'Foto');
         img.loading = 'lazy';
         div.appendChild(img);
         div.addEventListener('click', () => openLightbox(idx));
@@ -302,7 +302,7 @@
     function updateLightbox() {
       const p = filteredPhotos[currentIndex];
       lbImg.src = p.image.replace(/^\/+/, '');
-      lbCaption.textContent = [p.title, p.year].filter(Boolean).join(' — ');
+      lbCaption.textContent = p.year || '';
     }
     function closeLightbox() { lightbox.classList.remove('open'); }
     function nextPhoto() {
@@ -338,7 +338,16 @@
     fetch('data/photos.json?v=' + Date.now())
       .then(r => r.json())
       .then(data => {
-        allPhotos = data.photos || [];
+        if (Array.isArray(data.groups)) {
+          allPhotos = data.groups.flatMap(g =>
+            (g.images || []).map(img => ({
+              image: typeof img === 'string' ? img : img.image,
+              year: g.year
+            }))
+          );
+        } else {
+          allPhotos = data.photos || [];
+        }
         buildYearFilters();
         renderGallery('Tutti');
       })
